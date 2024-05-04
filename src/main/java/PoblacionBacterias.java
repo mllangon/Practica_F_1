@@ -1,7 +1,7 @@
 import java.time.LocalDate;
 import java.io.Serializable;
 
-public class PoblacionBacterias {
+public class PoblacionBacterias implements Serializable {
     private String nombre;
     private LocalDate fechaInicio;
     private LocalDate fechaFin;
@@ -10,26 +10,38 @@ public class PoblacionBacterias {
     private String luminosidad;
     private int[] dosisComida;
 
-    public PoblacionBacterias(String nombre, LocalDate fechaInicio, LocalDate fechaFin,
-                              int numeroInicialBacterias, double temperatura, String luminosidad,
-                              int comidaInicial, int diaIncremento, int comidaIncremento, int comidaFinal) {
+    public PoblacionBacterias(String nombre, LocalDate fechaInicio, LocalDate fechaFin, int numeroInicialBacterias, double temperatura, String luminosidad, int[] dosisComida) {
         this.nombre = nombre;
         this.fechaInicio = fechaInicio;
         this.fechaFin = fechaFin;
         this.numeroInicialBacterias = numeroInicialBacterias;
         this.temperatura = temperatura;
         this.luminosidad = luminosidad;
-        this.dosisComida = new int[30];
-        calcularDosisComida(comidaInicial, diaIncremento, comidaIncremento, comidaFinal);
+        this.dosisComida = dosisComida;
     }
 
-    private void calcularDosisComida(int comidaInicial, int diaIncremento, int comidaIncremento, int comidaFinal) {
-        for (int i = 0; i < 30; i++) {
-            if (i < diaIncremento) {
-                dosisComida[i] = comidaInicial + (comidaIncremento - comidaInicial) / diaIncremento * i;
-            } else {
-                dosisComida[i] = comidaIncremento - (comidaIncremento - comidaFinal) / (29 - diaIncremento) * (i - diaIncremento);
+    public static PoblacionBacterias fromString(String str) {
+        String[] parts = str.split(",");
+        if (parts.length < 36) {
+            throw new IllegalArgumentException("La cadena de texto tiene " + parts.length + " campos, pero se esperaban 36");
+        }
+        try {
+            String nombre = parts[0];
+            if (nombre == null || nombre.isEmpty()) {
+                throw new IllegalArgumentException("El nombre de la población no puede ser null o vacío");
             }
+            LocalDate fechaInicio = LocalDate.parse(parts[1]);
+            LocalDate fechaFin = LocalDate.parse(parts[2]);
+            int numeroInicialBacterias = Integer.parseInt(parts[3]);
+            double temperatura = Double.parseDouble(parts[4]);
+            String luminosidad = parts[5];
+            int[] dosisComida = new int[30];
+            for (int i = 0; i < 30; i++) {
+                dosisComida[i] = Integer.parseInt(parts[6 + i]);
+            }
+            return new PoblacionBacterias(nombre, fechaInicio, fechaFin, numeroInicialBacterias, temperatura, luminosidad, dosisComida);
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Error al procesar la cadena de texto: " + e.getMessage(), e);
         }
     }
 

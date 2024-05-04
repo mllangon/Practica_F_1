@@ -27,4 +27,22 @@ import java.util.List;
                     .findFirst()
                     .orElse(null);
         }
+        @Override
+        public String toString() {
+            StringBuilder sb = new StringBuilder();
+            for (PoblacionBacterias poblacion : poblaciones) {
+                sb.append(poblacion.getNombre()).append(",");
+                sb.append(poblacion.getFechaInicio()).append(",");
+                sb.append(poblacion.getFechaFin()).append(",");
+                sb.append(poblacion.getNumeroInicialBacterias()).append(",");
+                sb.append(poblacion.getTemperatura()).append(",");
+                sb.append(poblacion.getLuminosidad()).append(",");
+                for (int dosis : poblacion.getDosisComida()) {
+                    sb.append(dosis).append(",");
+                }
+                sb.append("\n");
+            }
+            return sb.toString();
+        }
     }
+

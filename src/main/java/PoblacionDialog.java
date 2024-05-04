@@ -1,6 +1,7 @@
 import javax.swing.*;
 import java.awt.*;
 import java.time.LocalDate;
+import java.util.Arrays;
 
 public class PoblacionDialog extends JDialog {
     private JTextField nombreField, temperaturaField, comidaInicialField, diaIncrementoField, comidaIncrementoField, comidaFinalField;
@@ -62,12 +63,24 @@ public class PoblacionDialog extends JDialog {
             int comidaFinal = Integer.parseInt(comidaFinalField.getText());
             String luminosidad = (String) luminosidadCombo.getSelectedItem();
 
+            if (comidaInicial >= 300 || comidaIncremento >= 300 || comidaFinal >= 300) {
+                throw new IllegalArgumentException("Las cantidades de comida deben ser valores enteros menores que 300");
+            }
+
+            int[] dosisComida = new int[30]; // Assuming the array size is 30
+            Arrays.fill(dosisComida, comidaInicial);
+            for (int i = diaIncremento; i < dosisComida.length; i += diaIncremento) {
+                dosisComida[i] = comidaIncremento;
+            }
+            dosisComida[dosisComida.length - 1] = comidaFinal;
+
             resultado = new PoblacionBacterias(nombre, LocalDate.now(), LocalDate.now().plusDays(30), 1000,
-                    temperatura, luminosidad, comidaInicial, diaIncremento,
-                    comidaIncremento, comidaFinal);
+                    temperatura, luminosidad, dosisComida);
             dispose();
         } catch (NumberFormatException ex) {
             JOptionPane.showMessageDialog(this, "Error en el formato de los datos.", "Error", JOptionPane.ERROR_MESSAGE);
+        } catch (IllegalArgumentException ex) {
+            JOptionPane.showMessageDialog(this, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 

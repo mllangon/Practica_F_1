@@ -1,4 +1,5 @@
 import java.io.*;
+import java.util.Scanner;
 
 public class GestorArchivo {
     private static String archivoActual = null;
@@ -15,8 +16,8 @@ public class GestorArchivo {
     }
 
     private static void guardar(Experimento experimento, String nombreArchivo) {
-        try (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(nombreArchivo))) {
-            out.writeObject(experimento);
+        try (PrintWriter out = new PrintWriter(new FileOutputStream(nombreArchivo))) {
+            out.print(experimento.toString());
             System.out.println("Experimento guardado correctamente en: " + nombreArchivo);
         } catch (IOException e) {
             System.err.println("Error al guardar el archivo: " + e.getMessage());
@@ -24,12 +25,23 @@ public class GestorArchivo {
     }
 
     public static Experimento cargarExperimento(String nombreArchivo) {
-        try (ObjectInputStream in = new ObjectInputStream(new FileInputStream(nombreArchivo))) {
-            Experimento experimento = (Experimento) in.readObject();
+        try (Scanner in = new Scanner(new FileInputStream(nombreArchivo))) {
+            Experimento experimento = new Experimento();
+            while (in.hasNextLine()) {
+                String line = in.nextLine();
+                if (!line.trim().isEmpty()) {
+                    try {
+                        PoblacionBacterias poblacion = PoblacionBacterias.fromString(line);
+                        experimento.agregarPoblacion(poblacion);
+                    } catch (IllegalArgumentException e) {
+                        System.err.println("Error al procesar la línea '" + line + "': " + e.getMessage());
+                    }
+                }
+            }
             archivoActual = nombreArchivo;
             System.out.println("Experimento cargado correctamente desde: " + nombreArchivo);
             return experimento;
-        } catch (IOException | ClassNotFoundException e) {
+        } catch (IOException e) {
             System.err.println("Error al cargar el archivo: " + e.getMessage());
             return null;
         }
