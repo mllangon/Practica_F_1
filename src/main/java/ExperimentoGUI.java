@@ -16,6 +16,9 @@ public class ExperimentoGUI extends JFrame {
         inicializarComponentes();
         configurarVentana();
         configurarMenu();
+        Color lightGreen = new Color(169, 244, 169);
+        this.getContentPane().setBackground(lightGreen);
+        detallesArea.setBackground(lightGreen);
     }
 
     private void configurarMenu() {

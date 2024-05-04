@@ -16,31 +16,31 @@ public class PoblacionDialog extends JDialog {
     }
 
     private void agregarComponentes() {
-        add(new JLabel("Nombre:"));
+        add(new JLabel("Nombre: (Nombre de la colonia de bacterias)"));
         nombreField = new JTextField(10);
         add(nombreField);
 
-        add(new JLabel("Temperatura:"));
+        add(new JLabel("Temperatura: (Temperatura del ambiente en grados Celsius)"));
         temperaturaField = new JTextField(5);
         add(temperaturaField);
 
-        add(new JLabel("Comida Inicial:"));
+        add(new JLabel("Comida Inicial: (Cantidad inicial de comida para las bacterias)"));
         comidaInicialField = new JTextField(5);
         add(comidaInicialField);
 
-        add(new JLabel("Día Incremento:"));
+        add(new JLabel("Día Incremento: (Día en el que se incrementará la comida)"));
         diaIncrementoField = new JTextField(5);
         add(diaIncrementoField);
 
-        add(new JLabel("Comida en Incremento:"));
+        add(new JLabel("Comida en Incremento: (Cantidad de comida que se añadirá en el día de incremento)"));
         comidaIncrementoField = new JTextField(5);
         add(comidaIncrementoField);
 
-        add(new JLabel("Comida Final:"));
+        add(new JLabel("Comida Final: (Cantidad final de comida para las bacterias)"));
         comidaFinalField = new JTextField(5);
         add(comidaFinalField);
 
-        add(new JLabel("Luminosidad:"));
+        add(new JLabel("Luminosidad: (Nivel de luminosidad del ambiente: Alta, Media, Baja)"));
         luminosidadCombo = new JComboBox<>(new String[]{"Alta", "Media", "Baja"});
         add(luminosidadCombo);
 
