@@ -1,4 +1,6 @@
 import javax.swing.*;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 import java.awt.*;
 import java.awt.event.*;
 
@@ -69,6 +71,15 @@ public class ExperimentoGUI extends JFrame {
         add(new JScrollPane(detallesArea), BorderLayout.CENTER);
 
         pack();
+
+        listaPoblaciones.addListSelectionListener(new ListSelectionListener() {
+            @Override
+            public void valueChanged(ListSelectionEvent e) {
+                if (!e.getValueIsAdjusting()) {
+                    mostrarDetallesPoblacion();
+                }
+            }
+        });
     }
 
     private void configurarVentana() {

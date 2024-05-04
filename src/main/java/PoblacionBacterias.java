@@ -19,30 +19,35 @@ public class PoblacionBacterias implements Serializable {
         this.luminosidad = luminosidad;
         this.dosisComida = dosisComida;
     }
-
     public static PoblacionBacterias fromString(String str) {
         String[] parts = str.split(",");
-        if (parts.length < 36) {
-            throw new IllegalArgumentException("La cadena de texto tiene " + parts.length + " campos, pero se esperaban 36");
+        String nombre = parts[0];
+        LocalDate fechaInicio = LocalDate.parse(parts[1]);
+        LocalDate fechaFin = LocalDate.parse(parts[2]);
+        int numeroInicialBacterias = Integer.parseInt(parts[3]);
+        double temperatura = Double.parseDouble(parts[4]);
+        String luminosidad = parts[5];
+        int[] dosisComida = new int[30];
+        for (int i = 0; i < dosisComida.length; i++) {
+            dosisComida[i] = Integer.parseInt(parts[6 + i]);
         }
-        try {
-            String nombre = parts[0];
-            if (nombre == null || nombre.isEmpty()) {
-                throw new IllegalArgumentException("El nombre de la población no puede ser null o vacío");
-            }
-            LocalDate fechaInicio = LocalDate.parse(parts[1]);
-            LocalDate fechaFin = LocalDate.parse(parts[2]);
-            int numeroInicialBacterias = Integer.parseInt(parts[3]);
-            double temperatura = Double.parseDouble(parts[4]);
-            String luminosidad = parts[5];
-            int[] dosisComida = new int[30];
-            for (int i = 0; i < 30; i++) {
-                dosisComida[i] = Integer.parseInt(parts[6 + i]);
-            }
-            return new PoblacionBacterias(nombre, fechaInicio, fechaFin, numeroInicialBacterias, temperatura, luminosidad, dosisComida);
-        } catch (Exception e) {
-            throw new IllegalArgumentException("Error al procesar la cadena de texto: " + e.getMessage(), e);
+        return new PoblacionBacterias(nombre, fechaInicio, fechaFin, numeroInicialBacterias, temperatura, luminosidad, dosisComida);
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("Nombre: ").append(nombre).append("\n");
+        sb.append("Fecha de inicio: ").append(fechaInicio).append("\n");
+        sb.append("Fecha de fin: ").append(fechaFin).append("\n");
+        sb.append("Número inicial de bacterias: ").append(numeroInicialBacterias).append("\n");
+        sb.append("Temperatura: ").append(temperatura).append("\n");
+        sb.append("Luminosidad: ").append(luminosidad).append("\n");
+        sb.append("Dosis de comida:\n");
+        for (int i = 0; i < dosisComida.length; i++) {
+            sb.append("Día ").append(i + 1).append(": ").append(dosisComida[i]).append("\n");
         }
+        return sb.toString();
     }
 
     public String getNombre() {
