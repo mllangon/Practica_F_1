@@ -1,8 +1,11 @@
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import java.awt.*;
 import java.awt.event.*;
+import java.io.IOException;
+import java.io.InputStream;
 
 public class ExperimentoGUI extends JFrame {
     private Experimento experimentoActual;
@@ -23,10 +26,10 @@ public class ExperimentoGUI extends JFrame {
 
     private void configurarMenu() {
         JMenuBar menuBar = new JMenuBar();
-        JMenu menuArchivo = new JMenu("Archivo");
+        JMenu menuArchivo = new JMenu("[Archivo ∨]");
 
         JMenuItem menuItemNuevo = new JMenuItem("Nuevo Experimento");
-        JMenuItem menuItemAbrir = new JMenuItem("Abrir...");
+        JMenuItem menuItemAbrir = new JMenuItem("Abrir Experimento");
         JMenuItem menuItemGuardar = new JMenuItem("Guardar");
         JMenuItem menuItemGuardarComo = new JMenuItem("Guardar como...");
         JMenuItem menuItemCrearPoblacion = new JMenuItem("Crear Población");
