@@ -1,4 +1,5 @@
 import java.time.LocalDate;
+import java.io.Serializable;
 
 public class PoblacionBacterias {
     private String nombre;

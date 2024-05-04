@@ -1,37 +1,30 @@
-import java.util.List;
+import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.List;
 
-public class Experimento {
-    private List<PoblacionBacterias> poblaciones;
+    public class Experimento implements Serializable {
+        private List<PoblacionBacterias> poblaciones;
 
-    public Experimento() {
-        this.poblaciones = new ArrayList<>();
+        public Experimento() {
+            poblaciones = new ArrayList<>();
+        }
+
+        public void agregarPoblacion(PoblacionBacterias poblacion) {
+            poblaciones.add(poblacion);
+        }
+
+        public void eliminarPoblacion(String nombre) {
+            poblaciones.removeIf(p -> p.getNombre().equals(nombre));
+        }
+
+        public List<PoblacionBacterias> getPoblaciones() {
+            return poblaciones;
+        }
+
+        public PoblacionBacterias getPoblacion(String nombre) {
+            return poblaciones.stream()
+                    .filter(p -> p.getNombre().equals(nombre))
+                    .findFirst()
+                    .orElse(null);
+        }
     }
-
-    public void agregarPoblacion(PoblacionBacterias poblacion) {
-        this.poblaciones.add(poblacion);
-    }
-
-    public void eliminarPoblacion(String nombre) {
-        this.poblaciones.removeIf(p -> p.getNombre().equals(nombre));
-    }
-
-    public List<PoblacionBacterias> getPoblaciones() {
-        return poblaciones;
-    }
-
-    public PoblacionBacterias getPoblacion(String nombre) {
-        return poblaciones.stream()
-                .filter(p -> p.getNombre().equals(nombre))
-                .findFirst()
-                .orElse(null);
-    }
-
-    public void guardar(String nombreArchivo) {
-        GestorArchivo.guardarExperimento(this, nombreArchivo);
-    }
-
-    public static Experimento cargar(String nombreArchivo) {
-        return GestorArchivo.cargarExperimento(nombreArchivo);
-    }
-}

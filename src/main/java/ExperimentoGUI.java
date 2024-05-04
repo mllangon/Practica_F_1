@@ -1,8 +1,6 @@
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
-import java.time.LocalDate;
-import java.time.format.DateTimeParseException;
 
 public class ExperimentoGUI extends JFrame {
     private Experimento experimentoActual;
@@ -22,18 +20,41 @@ public class ExperimentoGUI extends JFrame {
         JMenuBar menuBar = new JMenuBar();
         JMenu menuArchivo = new JMenu("Archivo");
 
-        JMenuItem menuItemAbrir = new JMenuItem("Abrir");
-        menuItemAbrir.addActionListener(e -> cargarExperimento());
-
-        JMenuItem menuItemGuardar = new JMenuItem("Guardar");
-        menuItemGuardar.addActionListener(e -> guardarExperimento());
-
         JMenuItem menuItemNuevo = new JMenuItem("Nuevo Experimento");
+        JMenuItem menuItemAbrir = new JMenuItem("Abrir...");
+        JMenuItem menuItemGuardar = new JMenuItem("Guardar");
+        JMenuItem menuItemGuardarComo = new JMenuItem("Guardar como...");
+        JMenuItem menuItemCrearPoblacion = new JMenuItem("Crear Población");
+        JMenuItem menuItemBorrarPoblacion = new JMenuItem("Borrar Población");
+
+        ActionListener crearPoblacionListener = new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                crearPoblacion();
+            }
+        };
+        ActionListener borrarPoblacionListener = new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                borrarPoblacion();
+            }
+        };
+
+        menuItemCrearPoblacion.addActionListener(crearPoblacionListener);
+        menuItemBorrarPoblacion.addActionListener(borrarPoblacionListener);
         menuItemNuevo.addActionListener(e -> nuevoExperimento());
+        menuItemAbrir.addActionListener(e -> cargarExperimento());
+        menuItemGuardar.addActionListener(e -> guardarExperimento());
+        menuItemGuardarComo.addActionListener(e -> guardarExperimentoComo());
 
         menuArchivo.add(menuItemNuevo);
         menuArchivo.add(menuItemAbrir);
         menuArchivo.add(menuItemGuardar);
+        menuArchivo.add(menuItemGuardarComo);
+        menuArchivo.add(menuItemCrearPoblacion);
+        menuArchivo.add(menuItemBorrarPoblacion);
+
+
         menuBar.add(menuArchivo);
         setJMenuBar(menuBar);
     }
@@ -41,65 +62,35 @@ public class ExperimentoGUI extends JFrame {
     private void inicializarComponentes() {
         modeloLista = new DefaultListModel<>();
         listaPoblaciones = new JList<>(modeloLista);
-        listaPoblaciones.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        listaPoblaciones.addListSelectionListener(e -> mostrarDetallesPoblacion());
-
         detallesArea = new JTextArea(10, 30);
         detallesArea.setEditable(false);
 
-        JButton btnAgregar = new JButton("Agregar Población");
-        btnAgregar.addActionListener(e -> agregarPoblacion());
-
-        JButton btnEliminar = new JButton("Eliminar Población");
-        btnEliminar.addActionListener(e -> eliminarPoblacion());
-
-        JPanel controlPanel = new JPanel();
-        controlPanel.add(btnAgregar);
-        controlPanel.add(btnEliminar);
-
         add(new JScrollPane(listaPoblaciones), BorderLayout.WEST);
         add(new JScrollPane(detallesArea), BorderLayout.CENTER);
-        add(controlPanel, BorderLayout.SOUTH);
+
+        pack();
     }
 
     private void configurarVentana() {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(600, 400);
+        setSize(800, 600);
         setLocationRelativeTo(null);
         setVisible(true);
     }
 
-    private void agregarPoblacion() {
-        PoblacionDialog dialog = new PoblacionDialog(this);
-        PoblacionBacterias poblacion = dialog.mostrarDialogo();
-        if (poblacion != null) {
-            experimentoActual.agregarPoblacion(poblacion);
-            modeloLista.addElement(poblacion.getNombre());
+    private void crearPoblacion() {
+        PoblacionDialog dialogo = new PoblacionDialog(this);
+        PoblacionBacterias nuevaPoblacion = dialogo.mostrarDialogo();
+        if (nuevaPoblacion != null) {
+            experimentoActual.agregarPoblacion(nuevaPoblacion);
+            actualizarListaPoblaciones();
         }
     }
 
-    private void eliminarPoblacion() {
+    private void borrarPoblacion() {
         String seleccionado = listaPoblaciones.getSelectedValue();
-        if (seleccionado != null && !seleccionado.isEmpty()) {
+        if (seleccionado != null) {
             experimentoActual.eliminarPoblacion(seleccionado);
-            modeloLista.removeElement(seleccionado);
-            detallesArea.setText("");
-        }
-    }
-
-    private void guardarExperimento() {
-        if (experimentoActual != null) {
-            String nombreArchivo = JOptionPane.showInputDialog(this, "Nombre del archivo para guardar:");
-            if (nombreArchivo != null && !nombreArchivo.trim().isEmpty()) {
-                experimentoActual.guardar(nombreArchivo);
-            }
-        }
-    }
-
-    private void cargarExperimento() {
-        String nombreArchivo = JOptionPane.showInputDialog(this, "Nombre del archivo para cargar:");
-        if (nombreArchivo != null && !nombreArchivo.trim().isEmpty()) {
-            experimentoActual = Experimento.cargar(nombreArchivo);
             actualizarListaPoblaciones();
         }
     }
@@ -107,20 +98,53 @@ public class ExperimentoGUI extends JFrame {
     private void nuevoExperimento() {
         experimentoActual = new Experimento();
         modeloLista.clear();
+        detallesArea.setText("");
+    }
+
+    private void guardarExperimento() {
+        if (experimentoActual != null && GestorArchivo.getArchivoActual() != null) {
+            GestorArchivo.guardarExperimento(experimentoActual);
+        } else {
+            guardarExperimentoComo();
+        }
+    }
+
+    private void guardarExperimentoComo() {
+        String nombreArchivo = JOptionPane.showInputDialog(this, "Ingrese el nombre del archivo para guardar:");
+        if (nombreArchivo != null && !nombreArchivo.trim().isEmpty()) {
+            GestorArchivo.guardarComo(experimentoActual, nombreArchivo);
+        }
+    }
+
+    private void cargarExperimento() {
+        String nombreArchivo = JOptionPane.showInputDialog(this, "Ingrese el nombre del archivo para cargar:");
+        if (nombreArchivo != null && !nombreArchivo.trim().isEmpty()) {
+            experimentoActual = GestorArchivo.cargarExperimento(nombreArchivo);
+            actualizarListaPoblaciones();
+        }
     }
 
     private void actualizarListaPoblaciones() {
-        modeloLista.clear();
-        for (PoblacionBacterias poblacion : experimentoActual.getPoblaciones()) {
-            modeloLista.addElement(poblacion.getNombre());
+        if (experimentoActual != null) {
+            modeloLista.clear();
+            experimentoActual.getPoblaciones().forEach(p -> modeloLista.addElement(p.getNombre()));
+            if (!modeloLista.isEmpty()) {
+                listaPoblaciones.setSelectedIndex(0);
+                mostrarDetallesPoblacion();
+            }
         }
     }
 
     private void mostrarDetallesPoblacion() {
-        String seleccionado = listaPoblaciones.getSelectedValue();
-        if (seleccionado != null && !seleccionado.isEmpty()) {
+        if (!listaPoblaciones.isSelectionEmpty()) {
+            String seleccionado = listaPoblaciones.getSelectedValue();
             PoblacionBacterias poblacion = experimentoActual.getPoblacion(seleccionado);
-            detallesArea.setText(poblacion.toString()); // Implementar adecuadamente toString en PoblacionBacterias
+            detallesArea.setText(poblacion.toString());
+            detallesArea.append("\nDosis de comida para cada día:\n");
+            int[] dosisComida = poblacion.getDosisComida();
+            for (int i = 0; i < dosisComida.length; i++) {
+                detallesArea.append("Día " + (i + 1) + ": " + dosisComida[i] + "\n");
+            }
         }
     }
 
