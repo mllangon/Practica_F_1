@@ -11,7 +11,9 @@ public class LoginFrame extends JFrame {
 
         LoginPanel loginPanel = new LoginPanel("/fondo.png");
         JTextField usernameField = new JTextField(15);
+        usernameField.setName("usernameField");
         JPasswordField passwordField = new JPasswordField(15);
+        passwordField.setName("passwordField");
         JButton loginButton = new JButton("Login");
 
         loginPanel.addComponents(usernameField, passwordField, loginButton);
