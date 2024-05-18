@@ -1,6 +1,5 @@
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -31,32 +30,21 @@ public class Experimento implements Serializable {
     }
 
     public void ordenarPorNombre() {
-        poblaciones.sort(Comparator.comparing(PoblacionBacterias::getNombre));
+        poblaciones.sort((p1, p2) -> p1.getNombre().compareToIgnoreCase(p2.getNombre()));
     }
 
     public void ordenarPorFecha() {
-        poblaciones.sort(Comparator.comparing(PoblacionBacterias::getFechaInicio));
+        poblaciones.sort((p1, p2) -> p1.getFechaInicio().compareTo(p2.getFechaInicio()));
     }
 
     public void ordenarPorNumeroBacterias() {
-        poblaciones.sort(Comparator.comparingInt(PoblacionBacterias::getNumeroInicialBacterias));
+        poblaciones.sort((p1, p2) -> Integer.compare(p1.getNumeroInicialBacterias(), p2.getNumeroInicialBacterias()));
     }
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder();
-        for (PoblacionBacterias poblacion : poblaciones) {
-            sb.append(poblacion.getNombre()).append(",");
-            sb.append(poblacion.getFechaInicio()).append(",");
-            sb.append(poblacion.getFechaFin()).append(",");
-            sb.append(poblacion.getNumeroInicialBacterias()).append(",");
-            sb.append(poblacion.getTemperatura()).append(",");
-            sb.append(poblacion.getLuminosidad()).append(",");
-            for (int dosis : poblacion.getDosisComida()) {
-                sb.append(dosis).append(",");
-            }
-            sb.append("\n");
-        }
-        return sb.toString();
+        return poblaciones.stream()
+                .map(PoblacionBacterias::toString)
+                .collect(Collectors.joining("\n"));
     }
 }

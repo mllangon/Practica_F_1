@@ -1,5 +1,5 @@
-import java.time.LocalDate;
 import java.io.Serializable;
+import java.time.LocalDate;
 import java.util.Arrays;
 
 public class PoblacionBacterias implements Serializable {
@@ -10,6 +10,7 @@ public class PoblacionBacterias implements Serializable {
     private double temperatura;
     private String luminosidad;
     private int[] dosisComida;
+    private String patronComida;
 
     public PoblacionBacterias(String nombre, LocalDate fechaInicio, LocalDate fechaFin, int numeroInicialBacterias, double temperatura, String luminosidad, int[] dosisComida) {
         this.nombre = nombre;
@@ -29,11 +30,66 @@ public class PoblacionBacterias implements Serializable {
         int numeroInicialBacterias = Integer.parseInt(parts[3]);
         double temperatura = Double.parseDouble(parts[4]);
         String luminosidad = parts[5];
-        int[] dosisComida = new int[parts.length - 6];
-        for (int i = 0; i < dosisComida.length; i++) {
-            dosisComida[i] = Integer.parseInt(parts[6 + i]);
-        }
+        int[] dosisComida = Arrays.stream(parts, 6, parts.length).mapToInt(Integer::parseInt).toArray();
         return new PoblacionBacterias(nombre, fechaInicio, fechaFin, numeroInicialBacterias, temperatura, luminosidad, dosisComida);
+    }
+
+    public void setFoodPattern(String patron, int comidaInicial, int comidaIncremento, int comidaFinal) {
+        this.patronComida = patron;
+        switch (patron) {
+            case "Constant":
+                Arrays.fill(dosisComida, comidaInicial);
+                break;
+            case "Linear Increase":
+                for (int i = 0; i < dosisComida.length; i++) {
+                    dosisComida[i] = comidaInicial + (comidaFinal - comidaInicial) * i / (dosisComida.length - 1);
+                }
+                break;
+            case "Alternating":
+                for (int i = 0; i < dosisComida.length; i++) {
+                    dosisComida[i] = (i % 2 == 0) ? comidaInicial : 0;
+                }
+                break;
+            case "Incremental":
+                Arrays.fill(dosisComida, comidaInicial);
+                for (int i = 0; i < dosisComida.length; i += comidaIncremento) {
+                    if (i < dosisComida.length) {
+                        dosisComida[i] = comidaIncremento;
+                    }
+                }
+                dosisComida[dosisComida.length - 1] = comidaFinal;
+                break;
+            default:
+                throw new IllegalArgumentException("Patrón de comida no reconocido.");
+        }
+    }
+
+    public String getNombre() {
+        return nombre;
+    }
+
+    public LocalDate getFechaInicio() {
+        return fechaInicio;
+    }
+
+    public LocalDate getFechaFin() {
+        return fechaFin;
+    }
+
+    public int getNumeroInicialBacterias() {
+        return numeroInicialBacterias;
+    }
+
+    public double getTemperatura() {
+        return temperatura;
+    }
+
+    public String getLuminosidad() {
+        return luminosidad;
+    }
+
+    public int[] getDosisComida() {
+        return dosisComida;
     }
 
     @Override
@@ -47,96 +103,8 @@ public class PoblacionBacterias implements Serializable {
         sb.append("Luminosidad: ").append(luminosidad).append("\n");
         sb.append("Dosis de comida:\n");
         for (int i = 0; i < dosisComida.length; i++) {
-            sb.append("Día ").append(i + 1).append(": ").append(dosisComida[i]).append("\n");
+            sb.append("Día ").append(i + 1).append(": ").append(dosisComida[i] * 1000).append(" µg\n"); // Convert back to µg
         }
         return sb.toString();
-    }
-
-    public String getNombre() {
-        return nombre;
-    }
-
-    public void setNombre(String nombre) {
-        this.nombre = nombre;
-    }
-
-    public double getTemperatura() {
-        return temperatura;
-    }
-
-    public void setTemperatura(double temperatura) {
-        this.temperatura = temperatura;
-    }
-
-    public String getLuminosidad() {
-        return luminosidad;
-    }
-
-    public void setLuminosidad(String luminosidad) {
-        this.luminosidad = luminosidad;
-    }
-
-    public int[] getDosisComida() {
-        return dosisComida;
-    }
-
-    public void setDosisComida(int[] dosisComida) {
-        this.dosisComida = dosisComida;
-    }
-
-    public LocalDate getFechaInicio() {
-        return fechaInicio;
-    }
-
-    public void setFechaInicio(LocalDate fechaInicio) {
-        this.fechaInicio = fechaInicio;
-    }
-
-    public LocalDate getFechaFin() {
-        return fechaFin;
-    }
-
-    public void setFechaFin(LocalDate fechaFin) {
-        this.fechaFin = fechaFin;
-    }
-
-    public int getNumeroInicialBacterias() {
-        return numeroInicialBacterias;
-    }
-
-    public void setNumeroInicialBacterias(int numeroInicialBacterias) {
-        this.numeroInicialBacterias = numeroInicialBacterias;
-    }
-
-    public void setDuration(int days) {
-        this.fechaFin = this.fechaInicio.plusDays(days);
-    }
-
-    public void setFoodPattern(String pattern, int initialAmount, int incrementAmount, int finalAmount) {
-        switch (pattern) {
-            case "Constant":
-                dosisComida = new int[getDuration()];
-                Arrays.fill(dosisComida, initialAmount);
-                break;
-            case "Linear Increase":
-                dosisComida = new int[getDuration()];
-                int increment = (finalAmount - initialAmount) / (getDuration() - 1);
-                for (int i = 0; i < dosisComida.length; i++) {
-                    dosisComida[i] = initialAmount + (increment * i);
-                }
-                break;
-            case "Alternating":
-                dosisComida = new int[getDuration()];
-                for (int i = 0; i < dosisComida.length; i++) {
-                    dosisComida[i] = (i % 2 == 0) ? initialAmount : 0;
-                }
-                break;
-            default:
-                throw new IllegalArgumentException("Invalid food pattern");
-        }
-    }
-
-    private int getDuration() {
-        return (int) (fechaFin.toEpochDay() - fechaInicio.toEpochDay());
     }
 }

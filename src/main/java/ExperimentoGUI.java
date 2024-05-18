@@ -5,6 +5,7 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.time.LocalDate;
+import java.util.List;
 
 public class ExperimentoGUI extends JFrame {
     private Experimento experimentoActual;
@@ -22,6 +23,8 @@ public class ExperimentoGUI extends JFrame {
     private JComboBox<String> foodPatternCombo;
     private JComboBox<String> durationCombo;
     private JComboBox<String> luminosityCombo;
+
+    private static final int SCALE_FACTOR = 1000; // Scale factor for internal representation
 
     public ExperimentoGUI() {
         super("Gestor de Experimentos de Bacterias");
@@ -54,7 +57,7 @@ public class ExperimentoGUI extends JFrame {
         menuItemOrdenarNombre.addActionListener(e -> ordenarPoblacionesPorNombre());
         menuItemOrdenarFecha.addActionListener(e -> ordenarPoblacionesPorFecha());
         menuItemOrdenarNumero.addActionListener(e -> ordenarPoblacionesPorNumero());
-        menuItemSimular.addActionListener(e -> simularExperimento());
+        menuItemSimular.addActionListener(e -> iniciarSimulacion());
 
         menuArchivo.add(menuItemNuevo);
         menuArchivo.add(menuItemAbrir);
@@ -103,10 +106,10 @@ public class ExperimentoGUI extends JFrame {
         controlPanel.add(luminosityCombo, gbc);
 
         gbc.gridx = 2;
-        controlPanel.add(new JLabel("Initial Food (mg):"), gbc);
+        controlPanel.add(new JLabel("Initial Food (µg):"), gbc);
         gbc.gridx = 3;
-        initialFoodSlider = new JSlider(0, 3000, 400);
-        initialFoodSlider.setMajorTickSpacing(500);
+        initialFoodSlider = new JSlider(0, 300000, 40000);
+        initialFoodSlider.setMajorTickSpacing(50000);
         initialFoodSlider.setPaintTicks(true);
         initialFoodSlider.setPaintLabels(true);
         initialFoodSlider.setPreferredSize(new Dimension(300, 50));
@@ -115,10 +118,10 @@ public class ExperimentoGUI extends JFrame {
         // Row 2
         gbc.gridx = 0;
         gbc.gridy = 2;
-        controlPanel.add(new JLabel("Comida Final (mg):"), gbc);
+        controlPanel.add(new JLabel("Comida Final (µg):"), gbc);
         gbc.gridx = 1;
-        comidaFinalSlider = new JSlider(0, 3000, 100);
-        comidaFinalSlider.setMajorTickSpacing(500);
+        comidaFinalSlider = new JSlider(0, 300000, 10000);
+        comidaFinalSlider.setMajorTickSpacing(50000);
         comidaFinalSlider.setPaintTicks(true);
         comidaFinalSlider.setPaintLabels(true);
         comidaFinalSlider.setPreferredSize(new Dimension(300, 50));
@@ -137,10 +140,10 @@ public class ExperimentoGUI extends JFrame {
         // Row 3
         gbc.gridx = 0;
         gbc.gridy = 3;
-        controlPanel.add(new JLabel("Cantidad Incremento (mg):"), gbc);
+        controlPanel.add(new JLabel("Cantidad Incremento (µg):"), gbc);
         gbc.gridx = 1;
-        comidaIncrementoSlider = new JSlider(0, 3000, 100);
-        comidaIncrementoSlider.setMajorTickSpacing(500);
+        comidaIncrementoSlider = new JSlider(0, 300000, 10000);
+        comidaIncrementoSlider.setMajorTickSpacing(50000);
         comidaIncrementoSlider.setPaintTicks(true);
         comidaIncrementoSlider.setPaintLabels(true);
         comidaIncrementoSlider.setPreferredSize(new Dimension(300, 50));
@@ -149,7 +152,7 @@ public class ExperimentoGUI extends JFrame {
         gbc.gridx = 2;
         controlPanel.add(new JLabel("Food Pattern:"), gbc);
         gbc.gridx = 3;
-        foodPatternCombo = new JComboBox<>(new String[]{"Constant", "Linear Increase", "Alternating"});
+        foodPatternCombo = new JComboBox<>(new String[]{"Constant", "Linear Increase", "Alternating", "Incremental"});
         controlPanel.add(foodPatternCombo, gbc);
 
         gbc.gridx = 0;
@@ -198,11 +201,15 @@ public class ExperimentoGUI extends JFrame {
             double temperatura = Double.parseDouble(temperaturaField.getText());
             int duracion = Integer.parseInt((String) durationCombo.getSelectedItem());
             String patronComida = (String) foodPatternCombo.getSelectedItem();
-            int comidaInicial = initialFoodSlider.getValue();
-            int comidaFinal = comidaFinalSlider.getValue();
+            int comidaInicial = initialFoodSlider.getValue() / SCALE_FACTOR;
+            int comidaFinal = comidaFinalSlider.getValue() / SCALE_FACTOR;
             int diaIncremento = diaIncrementoSlider.getValue();
-            int comidaIncremento = comidaIncrementoSlider.getValue();
+            int comidaIncremento = comidaIncrementoSlider.getValue() / SCALE_FACTOR;
             String luminosidad = (String) luminosityCombo.getSelectedItem();
+
+            if (comidaInicial >= 300 || comidaIncremento >= 300 || comidaFinal >= 300) {
+                throw new IllegalArgumentException("Las cantidades de comida deben ser valores enteros menores que 300.");
+            }
 
             PoblacionBacterias nuevaPoblacion = new PoblacionBacterias(nombre, LocalDate.now(), LocalDate.now().plusDays(duracion), 1000, temperatura, luminosidad, new int[duracion]);
             nuevaPoblacion.setFoodPattern(patronComida, comidaInicial, comidaIncremento, comidaFinal);
@@ -263,7 +270,7 @@ public class ExperimentoGUI extends JFrame {
             detallesArea.append("\nDosis de comida para cada día:\n");
             int[] dosisComida = poblacion.getDosisComida();
             for (int i = 0; i < dosisComida.length; i++) {
-                detallesArea.append("Día " + (i + 1) + ": " + dosisComida[i] + " mg\n");
+                detallesArea.append("Día " + (i + 1) + ": " + dosisComida[i] * SCALE_FACTOR + " µg\n"); // Convert back to µg for display
             }
         }
     }
@@ -283,65 +290,79 @@ public class ExperimentoGUI extends JFrame {
         actualizarListaPoblaciones();
     }
 
-    private void simularExperimento() {
+    private void iniciarSimulacion() {
         String seleccionado = listaPoblaciones.getSelectedValue();
         if (seleccionado != null) {
             PoblacionBacterias poblacion = experimentoActual.getPoblacion(seleccionado);
-            PlatoDeCultivo plato = new PlatoDeCultivo();
-
-            int initialFood = initialFoodSlider.getValue();
+            int initialFood = initialFoodSlider.getValue() / SCALE_FACTOR;
             String foodPattern = (String) foodPatternCombo.getSelectedItem();
             int duration = Integer.parseInt((String) durationCombo.getSelectedItem());
 
+            PlatoDeCultivo plato = new PlatoDeCultivo();
             plato.inicializarPlato(poblacion.getNumeroInicialBacterias(), initialFood);
-            poblacion.setDuration(duration);
-            poblacion.setFoodPattern(foodPattern, initialFood, comidaIncrementoSlider.getValue(), comidaFinalSlider.getValue());
+            poblacion.setFoodPattern(foodPattern, initialFood, comidaIncrementoSlider.getValue() / SCALE_FACTOR, comidaFinalSlider.getValue() / SCALE_FACTOR);
 
-            for (int i = 0; i < poblacion.getDosisComida().length; i++) {
-                plato.simularDia(poblacion.getDosisComida()[i]);
-            }
+            JFrame frame = new JFrame("Resultado de la Simulación");
+            frame.setSize(500, 500);
+            frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 
-            mostrarResultadoSimulacion(plato);
+            SimulationPanel simulationPanel = new SimulationPanel(plato, poblacion.getDosisComida());
+            frame.add(simulationPanel);
+            frame.setVisible(true);
+
+            Timer timer = new Timer(1000, new ActionListener() {
+                private int day = 0;
+
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    if (day < poblacion.getDosisComida().length) {
+                        plato.simularDia(poblacion.getDosisComida()[day]);
+                        simulationPanel.repaint();
+                        day++;
+                    } else {
+                        ((Timer) e.getSource()).stop();
+                    }
+                }
+            });
+            timer.start();
         }
     }
 
-    private void mostrarResultadoSimulacion(PlatoDeCultivo plato) {
-        int[][] bacteriaGrid = plato.getBacteriaGrid();
-        JFrame frame = new JFrame("Resultado de la Simulación");
-        frame.setSize(500, 500);
-        frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+    private class SimulationPanel extends JPanel {
+        private final PlatoDeCultivo plato;
+        private final int[] dosisComida;
 
-        JPanel panel = new JPanel() {
-            @Override
-            protected void paintComponent(Graphics g) {
-                super.paintComponent(g);
-                int cellSize = getWidth() / 20;
-                for (int i = 0; i < 20; i++) {
-                    for (int j = 0; j < 20; j++) {
-                        int bacteriaCount = bacteriaGrid[i][j];
-                        Color color;
-                        if (bacteriaCount >= 20) {
-                            color = Color.RED;
-                        } else if (bacteriaCount >= 15) {
-                            color = new Color(128, 0, 128); // Purple
-                        } else if (bacteriaCount >= 10) {
-                            color = Color.ORANGE;
-                        } else if (bacteriaCount >= 5) {
-                            color = Color.YELLOW;
-                        } else if (bacteriaCount >= 1) {
-                            color = Color.GREEN;
-                        } else {
-                            color = Color.WHITE;
-                        }
-                        g.setColor(color);
-                        g.fillRect(j * cellSize, i * cellSize, cellSize, cellSize);
+        public SimulationPanel(PlatoDeCultivo plato, int[] dosisComida) {
+            this.plato = plato;
+            this.dosisComida = dosisComida;
+        }
+
+        @Override
+        protected void paintComponent(Graphics g) {
+            super.paintComponent(g);
+            int cellSize = getWidth() / 20;
+            for (int i = 0; i < 20; i++) {
+                for (int j = 0; j < 20; j++) {
+                    int bacteriaCount = plato.getBacteriaGrid()[i][j];
+                    Color color;
+                    if (bacteriaCount >= 20) {
+                        color = Color.RED;
+                    } else if (bacteriaCount >= 15) {
+                        color = new Color(128, 0, 128); // Purple
+                    } else if (bacteriaCount >= 10) {
+                        color = Color.ORANGE;
+                    } else if (bacteriaCount >= 5) {
+                        color = Color.YELLOW;
+                    } else if (bacteriaCount >= 1) {
+                        color = Color.GREEN;
+                    } else {
+                        color = Color.WHITE;
                     }
+                    g.setColor(color);
+                    g.fillRect(j * cellSize, i * cellSize, cellSize, cellSize);
                 }
             }
-        };
-
-        frame.add(panel);
-        frame.setVisible(true);
+        }
     }
 
     public static void main(String[] args) {
