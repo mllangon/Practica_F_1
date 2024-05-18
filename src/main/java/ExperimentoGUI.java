@@ -5,7 +5,6 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.time.LocalDate;
-import java.util.List;
 
 public class ExperimentoGUI extends JFrame {
     private Experimento experimentoActual;
@@ -28,13 +27,49 @@ public class ExperimentoGUI extends JFrame {
 
     public ExperimentoGUI() {
         super("Gestor de Experimentos de Bacterias");
+
+        if (!showLoginDialog()) {
+            System.exit(0);
+        }
+
         experimentoActual = new Experimento();
         inicializarComponentes();
         configurarVentana();
         configurarMenu();
-        Color lightGreen = new Color(169, 244, 169);
-        this.getContentPane().setBackground(lightGreen);
-        detallesArea.setBackground(lightGreen);
+    }
+
+    private boolean showLoginDialog() {
+        JDialog loginDialog = new JDialog(this, "Login", true);
+        LoginPanel loginPanel = new LoginPanel("/fondo.png");
+        JTextField usernameField = new JTextField(15);
+        JPasswordField passwordField = new JPasswordField(15);
+        JButton loginButton = new JButton("Login");
+
+        loginPanel.addComponents(usernameField, passwordField, loginButton);
+
+        loginDialog.add(loginPanel);
+        loginDialog.setSize(400, 300); // Set the size of the login dialog
+        loginDialog.setLocationRelativeTo(null);
+
+        final boolean[] authenticated = {false};
+        loginButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String username = usernameField.getText();
+                String password = new String(passwordField.getPassword());
+
+                // Simple authentication logic (replace with real authentication logic)
+                if (username.equals("usuario") && password.equals("password")) {
+                    authenticated[0] = true;
+                    loginDialog.dispose();
+                } else {
+                    JOptionPane.showMessageDialog(loginDialog, "Invalid username or password", "Error", JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        });
+
+        loginDialog.setVisible(true);
+        return authenticated[0];
     }
 
     private void configurarMenu() {
@@ -67,6 +102,7 @@ public class ExperimentoGUI extends JFrame {
         menuArchivo.add(menuItemOrdenarFecha);
         menuArchivo.add(menuItemOrdenarNumero);
         menuArchivo.add(menuItemSimular);
+        detallesArea.setBackground(new Color(173, 255, 173)); // Light green color
 
         menuBar.add(menuArchivo);
         setJMenuBar(menuBar);
@@ -171,7 +207,11 @@ public class ExperimentoGUI extends JFrame {
 
         add(controlPanel, BorderLayout.NORTH);
         add(new JScrollPane(listaPoblaciones), BorderLayout.WEST);
-        add(new JScrollPane(detallesArea), BorderLayout.CENTER);
+
+        JPanel detallesPanel = new JPanel(new BorderLayout());
+        detallesPanel.setBackground(new Color(169, 244, 169)); // Light green background color
+        detallesPanel.add(new JScrollPane(detallesArea), BorderLayout.CENTER);
+        add(detallesPanel, BorderLayout.CENTER);
 
         pack();
 
