@@ -1,11 +1,9 @@
-import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import java.awt.*;
 import java.awt.event.*;
-import java.io.IOException;
-import java.io.InputStream;
+import java.util.Collections;
 
 public class ExperimentoGUI extends JFrame {
     private Experimento experimentoActual;
@@ -34,26 +32,21 @@ public class ExperimentoGUI extends JFrame {
         JMenuItem menuItemGuardarComo = new JMenuItem("Guardar como...");
         JMenuItem menuItemCrearPoblacion = new JMenuItem("Crear Población");
         JMenuItem menuItemBorrarPoblacion = new JMenuItem("Borrar Población");
+        JMenuItem menuItemOrdenarNombre = new JMenuItem("Ordenar por Nombre");
+        JMenuItem menuItemOrdenarFecha = new JMenuItem("Ordenar por Fecha");
+        JMenuItem menuItemOrdenarNumero = new JMenuItem("Ordenar por Número de Bacterias");
+        JMenuItem menuItemSimular = new JMenuItem("Simular Experimento");
 
-        ActionListener crearPoblacionListener = new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                crearPoblacion();
-            }
-        };
-        ActionListener borrarPoblacionListener = new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                borrarPoblacion();
-            }
-        };
-
-        menuItemCrearPoblacion.addActionListener(crearPoblacionListener);
-        menuItemBorrarPoblacion.addActionListener(borrarPoblacionListener);
+        menuItemCrearPoblacion.addActionListener(e -> crearPoblacion());
+        menuItemBorrarPoblacion.addActionListener(e -> borrarPoblacion());
         menuItemNuevo.addActionListener(e -> nuevoExperimento());
         menuItemAbrir.addActionListener(e -> cargarExperimento());
         menuItemGuardar.addActionListener(e -> guardarExperimento());
         menuItemGuardarComo.addActionListener(e -> guardarExperimentoComo());
+        menuItemOrdenarNombre.addActionListener(e -> ordenarPoblacionesPorNombre());
+        menuItemOrdenarFecha.addActionListener(e -> ordenarPoblacionesPorFecha());
+        menuItemOrdenarNumero.addActionListener(e -> ordenarPoblacionesPorNumero());
+        menuItemSimular.addActionListener(e -> simularExperimento());
 
         menuArchivo.add(menuItemNuevo);
         menuArchivo.add(menuItemAbrir);
@@ -61,7 +54,10 @@ public class ExperimentoGUI extends JFrame {
         menuArchivo.add(menuItemGuardarComo);
         menuArchivo.add(menuItemCrearPoblacion);
         menuArchivo.add(menuItemBorrarPoblacion);
-
+        menuArchivo.add(menuItemOrdenarNombre);
+        menuArchivo.add(menuItemOrdenarFecha);
+        menuArchivo.add(menuItemOrdenarNumero);
+        menuArchivo.add(menuItemSimular);
 
         menuBar.add(menuArchivo);
         setJMenuBar(menuBar);
@@ -163,6 +159,75 @@ public class ExperimentoGUI extends JFrame {
                 detallesArea.append("Día " + (i + 1) + ": " + dosisComida[i] + "\n");
             }
         }
+    }
+
+    private void ordenarPoblacionesPorNombre() {
+        experimentoActual.ordenarPorNombre();
+        actualizarListaPoblaciones();
+    }
+
+    private void ordenarPoblacionesPorFecha() {
+        experimentoActual.ordenarPorFecha();
+        actualizarListaPoblaciones();
+    }
+
+    private void ordenarPoblacionesPorNumero() {
+        experimentoActual.ordenarPorNumeroBacterias();
+        actualizarListaPoblaciones();
+    }
+
+    private void simularExperimento() {
+        String seleccionado = listaPoblaciones.getSelectedValue();
+        if (seleccionado != null) {
+            PoblacionBacterias poblacion = experimentoActual.getPoblacion(seleccionado);
+            PlatoDeCultivo plato = new PlatoDeCultivo();
+            plato.inicializarPlato(poblacion.getNumeroInicialBacterias(), 40000); // Example initial food amount
+
+            for (int i = 0; i < poblacion.getDosisComida().length; i++) {
+                plato.simularDia(poblacion.getDosisComida()[i]);
+            }
+
+            mostrarResultadoSimulacion(plato);
+        }
+    }
+
+    private void mostrarResultadoSimulacion(PlatoDeCultivo plato) {
+        int[][] bacteriaGrid = plato.getBacteriaGrid();
+        JFrame frame = new JFrame("Resultado de la Simulación");
+        frame.setSize(500, 500);
+        frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+
+        JPanel panel = new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                int cellSize = getWidth() / 20;
+                for (int i = 0; i < 20; i++) {
+                    for (int j = 0; j < 20; j++) {
+                        int bacteriaCount = bacteriaGrid[i][j];
+                        Color color;
+                        if (bacteriaCount >= 20) {
+                            color = Color.RED;
+                        } else if (bacteriaCount >= 15) {
+                            color = new Color(128, 0, 128); // Purple
+                        } else if (bacteriaCount >= 10) {
+                            color = Color.ORANGE;
+                        } else if (bacteriaCount >= 5) {
+                            color = Color.YELLOW;
+                        } else if (bacteriaCount >= 1) {
+                            color = Color.GREEN;
+                        } else {
+                            color = Color.WHITE;
+                        }
+                        g.setColor(color);
+                        g.fillRect(j * cellSize, i * cellSize, cellSize, cellSize);
+                    }
+                }
+            }
+        };
+
+        frame.add(panel);
+        frame.setVisible(true);
     }
 
     public static void main(String[] args) {

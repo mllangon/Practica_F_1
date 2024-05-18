@@ -4,8 +4,8 @@ import java.time.LocalDate;
 import java.util.Arrays;
 
 public class PoblacionDialog extends JDialog {
-    private JTextField nombreField, temperaturaField, comidaInicialField, diaIncrementoField, comidaIncrementoField, comidaFinalField;
-    private JComboBox<String> luminosidadCombo;
+    private JTextField nombreField, temperaturaField, comidaInicialField, comidaFinalField, diaIncrementoField, comidaIncrementoField;
+    private JComboBox<String> luminosidadCombo, duracionCombo, patronCombo;
     private PoblacionBacterias resultado;
 
     public PoblacionDialog(Frame owner) {
@@ -16,31 +16,39 @@ public class PoblacionDialog extends JDialog {
     }
 
     private void agregarComponentes() {
-        add(new JLabel("Nombre: (Nombre de la colonia de bacterias)"));
+        add(new JLabel("Nombre:"));
         nombreField = new JTextField(10);
         add(nombreField);
 
-        add(new JLabel("Temperatura: (Temperatura del ambiente en grados Celsius)"));
+        add(new JLabel("Temperatura:"));
         temperaturaField = new JTextField(5);
         add(temperaturaField);
 
-        add(new JLabel("Comida Inicial: (Cantidad inicial de comida para las bacterias)"));
+        add(new JLabel("Duración (días):"));
+        duracionCombo = new JComboBox<>(new String[]{"15", "30", "45"});
+        add(duracionCombo);
+
+        add(new JLabel("Patrón de comida:"));
+        patronCombo = new JComboBox<>(new String[]{"Constant", "Linear Increase", "Alternating"});
+        add(patronCombo);
+
+        add(new JLabel("Comida Inicial (microgramos):"));
         comidaInicialField = new JTextField(5);
         add(comidaInicialField);
 
-        add(new JLabel("Día Incremento: (Día en el que se incrementará la comida)"));
-        diaIncrementoField = new JTextField(5);
-        add(diaIncrementoField);
-
-        add(new JLabel("Comida en Incremento: (Cantidad de comida que se añadirá en el día de incremento)"));
-        comidaIncrementoField = new JTextField(5);
-        add(comidaIncrementoField);
-
-        add(new JLabel("Comida Final: (Cantidad final de comida para las bacterias)"));
+        add(new JLabel("Comida Final (microgramos):"));
         comidaFinalField = new JTextField(5);
         add(comidaFinalField);
 
-        add(new JLabel("Luminosidad: (Nivel de luminosidad del ambiente: Alta, Media, Baja)"));
+        add(new JLabel("Día de Incremento:"));
+        diaIncrementoField = new JTextField(5);
+        add(diaIncrementoField);
+
+        add(new JLabel("Cantidad de Incremento:"));
+        comidaIncrementoField = new JTextField(5);
+        add(comidaIncrementoField);
+
+        add(new JLabel("Luminosidad:"));
         luminosidadCombo = new JComboBox<>(new String[]{"Alta", "Media", "Baja"});
         add(luminosidadCombo);
 
@@ -57,25 +65,21 @@ public class PoblacionDialog extends JDialog {
         try {
             String nombre = nombreField.getText();
             double temperatura = Double.parseDouble(temperaturaField.getText());
+            int duracion = Integer.parseInt((String) duracionCombo.getSelectedItem());
+            String patronComida = (String) patronCombo.getSelectedItem();
             int comidaInicial = Integer.parseInt(comidaInicialField.getText());
+            int comidaFinal = Integer.parseInt(comidaFinalField.getText());
             int diaIncremento = Integer.parseInt(diaIncrementoField.getText());
             int comidaIncremento = Integer.parseInt(comidaIncrementoField.getText());
-            int comidaFinal = Integer.parseInt(comidaFinalField.getText());
             String luminosidad = (String) luminosidadCombo.getSelectedItem();
 
-            if (comidaInicial >= 300 || comidaIncremento >= 300 || comidaFinal >= 300) {
-                throw new IllegalArgumentException("Las cantidades de comida deben ser valores enteros menores que 300");
+            if (comidaInicial >= 300000 || comidaIncremento >= 300000 || comidaFinal >= 300000) {
+                throw new IllegalArgumentException("Las cantidades de comida deben ser valores enteros menores que 300,000");
             }
 
-            int[] dosisComida = new int[30]; // Assuming the array size is 30
-            Arrays.fill(dosisComida, comidaInicial);
-            for (int i = diaIncremento; i < dosisComida.length; i += diaIncremento) {
-                dosisComida[i] = comidaIncremento;
-            }
-            dosisComida[dosisComida.length - 1] = comidaFinal;
-
-            resultado = new PoblacionBacterias(nombre, LocalDate.now(), LocalDate.now().plusDays(30), 1000,
-                    temperatura, luminosidad, dosisComida);
+            PoblacionBacterias nuevaPoblacion = new PoblacionBacterias(nombre, LocalDate.now(), LocalDate.now().plusDays(duracion), 1000, temperatura, luminosidad, new int[duracion]);
+            nuevaPoblacion.setFoodPattern(patronComida, comidaInicial, comidaIncremento, comidaFinal);
+            resultado = nuevaPoblacion;
             dispose();
         } catch (NumberFormatException ex) {
             JOptionPane.showMessageDialog(this, "Error en el formato de los datos.", "Error", JOptionPane.ERROR_MESSAGE);

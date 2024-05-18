@@ -1,5 +1,6 @@
 import java.time.LocalDate;
 import java.io.Serializable;
+import java.util.Arrays;
 
 public class PoblacionBacterias implements Serializable {
     private String nombre;
@@ -19,6 +20,7 @@ public class PoblacionBacterias implements Serializable {
         this.luminosidad = luminosidad;
         this.dosisComida = dosisComida;
     }
+
     public static PoblacionBacterias fromString(String str) {
         String[] parts = str.split(",");
         String nombre = parts[0];
@@ -27,7 +29,7 @@ public class PoblacionBacterias implements Serializable {
         int numeroInicialBacterias = Integer.parseInt(parts[3]);
         double temperatura = Double.parseDouble(parts[4]);
         String luminosidad = parts[5];
-        int[] dosisComida = new int[30];
+        int[] dosisComida = new int[parts.length - 6];
         for (int i = 0; i < dosisComida.length; i++) {
             dosisComida[i] = Integer.parseInt(parts[6 + i]);
         }
@@ -104,5 +106,37 @@ public class PoblacionBacterias implements Serializable {
 
     public void setNumeroInicialBacterias(int numeroInicialBacterias) {
         this.numeroInicialBacterias = numeroInicialBacterias;
+    }
+
+    public void setDuration(int days) {
+        this.fechaFin = this.fechaInicio.plusDays(days);
+    }
+
+    public void setFoodPattern(String pattern, int initialAmount, int incrementAmount, int finalAmount) {
+        switch (pattern) {
+            case "Constant":
+                dosisComida = new int[getDuration()];
+                Arrays.fill(dosisComida, initialAmount);
+                break;
+            case "Linear Increase":
+                dosisComida = new int[getDuration()];
+                int increment = (finalAmount - initialAmount) / (getDuration() - 1);
+                for (int i = 0; i < dosisComida.length; i++) {
+                    dosisComida[i] = initialAmount + (increment * i);
+                }
+                break;
+            case "Alternating":
+                dosisComida = new int[getDuration()];
+                for (int i = 0; i < dosisComida.length; i++) {
+                    dosisComida[i] = (i % 2 == 0) ? initialAmount : 0;
+                }
+                break;
+            default:
+                throw new IllegalArgumentException("Invalid food pattern");
+        }
+    }
+
+    private int getDuration() {
+        return (int) (fechaFin.toEpochDay() - fechaInicio.toEpochDay());
     }
 }
